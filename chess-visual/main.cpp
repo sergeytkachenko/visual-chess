@@ -3,6 +3,8 @@
 #include <opencv2/videoio/videoio.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc.hpp>
+#include <opencv2/calib3d/calib3d.hpp>
+#include <opencv2/core.hpp>
 #include <math.h>
 
 #include <iostream>
@@ -13,97 +15,64 @@
 using namespace cv;
 using namespace std;
 
-float angleBetween(const Point a, const Point b) {
-    float angle = atan2(a.y - b.y, a.x - b.x);
-    return (angle + 90);
-}
-
-double getSideLength(float diagonale) {
-    double a = diagonale * diagonale / 2;
-    return sqrt(a);
-}
-
-Point2f getEndPoint(Point2f p, float angle, float len) {
-    double x = p.x + len * cos(angle);
-    double y = p.y + len * sin(angle);
-    Point2f p2 = Point2f(x, y);
-    return p2;
-}
-
-vector<Point2f> findDiagonale(string imagePath) {
-    Mat3b hsv;
-    Mat image = imread(imagePath);
-    cvtColor(image, hsv, COLOR_BGR2HSV);
-    for(int y=0; y < hsv.rows; y++) {
-        for(int x=0; x < hsv.cols; x++) {
-            Vec3b color = hsv.at<Vec3b>(Point(x,y));
-            
-            if(color[0] < 2 && color[1] > 250 && color[2] > 250) {
-                color[0] = 255;
-                color[1] = 255;
-                color[2] = 255;
-                
-            } else {
-                color.val[0] = 0;
-                color.val[1] = 0;
-                color.val[2] = 0;
-            }
-            
-            image.at<Vec3b>(Point(x,y)) = color;
-        }
-    }
-    
-    Mat gray;
-    cvtColor(image, gray, COLOR_BGR2GRAY);
-    vector<vector<Point> > contours;
-    vector<Vec4i> hierarchy;
-    Canny(gray, gray, 100, 100 * 2, 3);
-    findContours(gray, contours, hierarchy, RETR_TREE, CHAIN_APPROX_SIMPLE, Point(0, 0));
-    vector<Moments> mu(contours.size());
-    for( int i = 0; i < contours.size(); i++ ) {
-        mu[i] = moments( contours[i], false );
-    }
-    vector<Point2f> mc(contours.size());
-    for( int i = 0; i < contours.size(); i++) {
-        mc[i] = Point2f(mu[i].m10 / mu[i].m00, mu[i].m01 / mu[i].m00 );
-    }
-    return mc;
-}
 
 int main(int ac, char** av) {
-    string img = "/Users/s/IdeaProjects/visual-chess/src/main/resources/images/example2.jpg";
-    vector<Point2f> points = findDiagonale(img);
-    Mat image = imread(img);
-    Point2f a = points.at(0);
-    Point2f b = points.at(2);
-    double res = cv::norm(a - b);
-    float angle = angleBetween(a, b);
-    double sideLength = getSideLength(res);
-    Point2f endPoint = getEndPoint(a, angle, sideLength);
-    Mat drawing = Mat::zeros(image.size(), CV_8UC3);
+    string example = "/Users/s/Documents/c++/chess-visual/chess-visual/images/example.jpg";
+    string example2 = "/Users/s/Documents/c++/chess-visual/chess-visual/images/example2.jpg";
+    string example3 = "/Users/s/Documents/c++/chess-visual/chess-visual/images/example3.jpg";
+    string chessboard = "/Users/s/Documents/c++/chess-visual/chess-visual/images/chessboard2.jpg";
+    string chessbig = "/Users/s/Documents/c++/chess-visual/chess-visual/images/chessbig.jpg";
+    string chessboard2d = "/Users/s/Documents/c++/chess-visual/chess-visual/images/chessboard2d.jpg";
+    Mat gray;
+    Mat image = imread(chessbig);
+    GaussianBlur(image, image, Size(5, 5), 0);
+    cvtColor(image, gray, CV_RGB2GRAY);
+    
+    /*Mat result;
+    
+    Mat image = imread(chessboard);
+    cvtColor(image, image, CV_RGB2GRAY);
+    GaussianBlur(image, image, Size(1,1), 0);
+    
+    Laplacian(image, dst, CV_16S, 3, 1, 0, BORDER_DEFAULT);
+    convertScaleAbs(dst, dst);
+    //dilate(dst, dst, Mat(), Point(-1, -1));
+    //cornerHarris(image, dst, 7, 15, 0.05);
+    //normalize(dst, dst, 0, 255, NORM_MINMAX, CV_32FC1, Mat());
+    convertScaleAbs(dst, dst);
+    dilate(dst, dst, Mat(), Point(-1, -1));
+    
+    double thresh = 110;
+    double maxValue = 200;
+    threshold(dst, result, thresh, maxValue, THRESH_BINARY);
+    
+    imshow("result", result);
+    imshow("dst", dst);
+    imshow("image", image);*/
+    
+    // Shi-Tomasi corner detector
+    
+    int maxCorners = 800;
+    int maxTrackbar = 100;
+    
     RNG rng(12345);
-    Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255));
-    for( int i = 0; i < points.size(); i++ ) {
-        circle(image, points[i], 1, color, -1, 1, 0);
+    vector<Point2f> corners;
+    double qualityLevel = 0.01;
+    double minDistance = 20;
+    int blockSize = 3;
+    bool useHarrisDetector = true;
+    double k = 0.1;
+    
+    goodFeaturesToTrack(gray, corners, maxCorners, qualityLevel, minDistance, Mat(), blockSize, useHarrisDetector, k);
+    cout<<"** Number of corners detected: "<<corners.size()<<endl;
+    
+    int r = 10;
+    for( int i = 0; i < corners.size(); i++ ) {
+        circle(image, corners[i], r, Scalar(rng.uniform(0,255), rng.uniform(0,255), rng.uniform(0,255)), -1, 8, 0);
     }
-    circle(image, endPoint, 4, color, -1, 1, 0);
-    
-    cv::Point2f source_points[4];
-    cv::Point2f dest_points[4];
-    source_points[0] = points.at(0);
-    source_points[1] = points.at(2);
-    source_points[2] = points.at(4);
-    source_points[3] = points.at(6);
-    
-    dest_points[0] = points.at(0);
-    dest_points[1] = points.at(2);
-    dest_points[2] = points.at(4);
-    dest_points[3] = points.at(6);
-    
-    Mat transform_matrix = getPerspectiveTransform(source_points, dest_points);
-    cv::warpPerspective(image, image, transform_matrix, cv::Size(1698, 1200));
     
     imshow("image", image);
+    
     waitKey(0);
     return 0;
 }

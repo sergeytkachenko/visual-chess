@@ -33,4 +33,12 @@ dependencies: /Users/s/Documents/c++/chess-visual/chess-visual/main.cpp \
   /usr/local/Cellar/opencv3/3.1.0_4/include/opencv2/highgui.hpp \
   /usr/local/Cellar/opencv3/3.1.0_4/include/opencv2/highgui/highgui_c.h \
   /usr/local/Cellar/opencv3/3.1.0_4/include/opencv2/imgcodecs/imgcodecs_c.h \
-  /usr/local/Cellar/opencv3/3.1.0_4/include/opencv2/videoio/videoio_c.h
+  /usr/local/Cellar/opencv3/3.1.0_4/include/opencv2/videoio/videoio_c.h \
+  /usr/local/Cellar/opencv3/3.1.0_4/include/opencv2/calib3d/calib3d.hpp \
+  /usr/local/Cellar/opencv3/3.1.0_4/include/opencv2/calib3d.hpp \
+  /usr/local/Cellar/opencv3/3.1.0_4/include/opencv2/features2d.hpp \
+  /usr/local/Cellar/opencv3/3.1.0_4/include/opencv2/flann/miniflann.hpp \
+  /usr/local/Cellar/opencv3/3.1.0_4/include/opencv2/flann/defines.h \
+  /usr/local/Cellar/opencv3/3.1.0_4/include/opencv2/flann/config.h \
+  /usr/local/Cellar/opencv3/3.1.0_4/include/opencv2/core/affine.hpp \
+  /usr/local/Cellar/opencv3/3.1.0_4/include/opencv2/calib3d/calib3d_c.h
